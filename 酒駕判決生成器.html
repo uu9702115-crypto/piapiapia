@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>刑事簡易判決產生器</title>
+    <style>
+        body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; background-color: #f4f6f9; padding: 20px; }
+        .wrapper { max-width: 1350px; margin: auto; display: grid; grid-template-columns: 550px 1fr; gap: 20px; }
+        .input-area { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow-y: auto; max-height: 95vh; }
+        h2 { color: #1a237e; border-left: 5px solid #1a237e; padding-left: 10px; font-size: 20px; margin-bottom: 15px; }
+        .section-title { font-weight: bold; color: #1a237e; margin: 15px 0 8px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
+        .time-group { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+        .time-group input { width: 45px; text-align: center; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; margin-bottom: 4px; color: #546e7a; font-weight: bold; }
+        input, select { padding: 8px; border: 1px solid #cfd8dc; border-radius: 4px; box-sizing: border-box; width: 100%; font-size: 14px; }
+        .day-select { width: 70px !important; }
+        .case-group { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .case-group input { width: 70px; text-align: center; }
+        button { background: #1a237e; color: white; padding: 15px; border: none; border-radius: 6px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:hover { background: #283593; }
+        .output-area { background: white; padding: 40px; border-radius: 8px; border: 1px solid #d1d1d1; min-height: 1000px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        #judgement_text { white-space: pre-wrap; font-family: "標楷體", "DFKai-SB", serif; font-size: 20px; line-height: 2.1; color: #000; }
+        .copy-btn { float: right; background: #455a64; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-size: 13px; margin-bottom: 10px; }
+        .hidden { display: none; }
+        .extra-input { background-color: #f1f8ff; padding: 10px; border-radius: 4px; margin-top: 5px; border: 1px dashed #2196f3; }
+        .num-short { width: 60px !important; display: inline-block !important; text-align: center; }
+        .case-input-group { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-bottom: 5px; }
+        .court-input { width: 100px !important; display: inline-block !important; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="input-area">
+        <h2>案件參數輸入</h2>
+        
+        <div class="section-title">1. 基本案號與人別</div>
+        <div class="case-group">
+            <input type="text" id="case_year" placeholder="114"> <span>年度原交易字第</span>
+            <input type="text" id="case_num" placeholder="案號"> <span>號</span>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+            <label>被告姓名</label>
+            <input type="text" id="name" placeholder="請輸入姓名">
+        </div>
+        <div class="form-group">
+            <label>選任辯護人姓名 (若無則留空)</label>
+            <input type="text" id="lawyer" placeholder="律師姓名">
+        </div>
+        <div class="case-group">
+            <input type="text" id="pros_year" placeholder="114"> <span>年度</span>
+            <select id="pros_type" style="width: 100px;">
+                <option value="速偵字">速偵字</option>
+                <option value="偵字">偵字</option>
+            </select>
+            <span>第</span><input type="text" id="pros_num" placeholder="案號"> <span>號</span>
+        </div>
+
+        <div class="section-title">2. 飲酒事實與地址</div>
+        <div class="time-group">
+            <span>民國</span><input type="text" id="ay1"><span>年</span>
+            <input type="text" id="am1"><span>月</span>
+            <input type="text" id="ad1"><span>日</span>
+            <input type="text" id="ah1"><span>時</span>
+            <input type="text" id="ami1"><span>分許，至</span>
+        </div>
+        <div class="time-group">
+            <select id="day_end" class="day-select"><option value="同日">同日</option><option value="翌日">翌日</option></select>
+            <input type="text" id="ah2"><span>時</span>
+            <input type="text" id="ami2"><span>分許止</span>
+        </div>
+        <label>飲酒地址</label>
+        <input type="text" id="drink_loc" value="花蓮縣○○路○○巷○號之住處內">
+
+        <div class="section-title">3. 行經地點/原因/查獲</div>
+        <div class="time-group">
+            <span>行經時間：</span>
+            <select id="day_pass" class="day-select"><option value="同日">同日</option><option value="翌日">翌日</option></select>
+            <input type="text" id="h_pass"><span>時</span>
+            <input type="text" id="m_pass"><span>分許</span>
+        </div>
+        <input type="text" id="location" placeholder="行經地址" style="margin-bottom:8px;">
+        <input type="text" id="reason" value="不勝酒力自摔">
+        <div class="time-group" style="margin-top:8px;">
+            <span>酒測時間：</span>
+            <select id="day_test" class="day-select"><option value="同日">同日</option><option value="翌日">翌日</option></select>
+            <input type="text" id="h_test"><span>時</span>
+            <input type="text" id="m_test"><span>分許</span>
+        </div>
+
+        <div class="section-title">4. 證據清單自訂項目</div>
+        <label>分局名稱</label>
+        <input type="text" id="dept_name" placeholder="例如：花蓮">
+        <label style="margin-top:8px;">紀錄表名稱 (證據二)</label>
+        <input type="text" id="record_name" value="處理公共危險" placeholder="例如：處理公共危險">
+        <label style="margin-top:8px;">檢定合格證明單位 (證據三)</label>
+        <select id="cert_unit">
+            <option value="財團法人台灣商品檢測驗證中心">財團法人台灣商品檢測驗證中心</option>
+            <option value="工業技術研究院">工業技術研究院</option>
+        </select>
+
+        <div class="section-title">5. 交通工具與量刑前科</div>
+        <select id="vehicle_type">
+            <option value="普通重型機車">普通重型機車</option>
+            <option value="自用小客車">自用小客車</option>
+            <option value="自用小貨車">自用小貨車</option>
+            <option value="自用小客貨車">自用小客貨車</option>
+            <option value="電動輔助自行車">電動輔助自行車</option>
+        </select>
+        <input type="text" id="plate_id" placeholder="車牌號碼" style="margin-top:8px;">
+        
+        <label style="margin-top:8px;">駕駛執照狀態</label>
+        <select id="license_status">
+            <option value="yes">有駕駛執照</option>
+            <option value="no">無駕駛執照</option>
+        </select>
+
+        <label style="margin-top:8px; color: #d32f2f;">前科紀錄類型</label>
+        <select id="rec_type" onchange="toggleRecInputs()">
+            <option value="初犯">初犯 (預設文字)</option>
+            <option value="再犯">再犯 (插入前案案號)</option>
+            <option value="累犯">累犯 (插入累犯說明段落)</option>
+        </select>
+
+        <div id="input_again" class="extra-input hidden">
+            <label>前案法院及案號：</label>
+            <div class="case-input-group">
+                <select id="again_court_sel" onchange="toggleCourtInput('again')" style="width: 80px;">
+                    <option value="本院">本院</option>
+                    <option value="臺灣">臺灣</option>
+                </select>
+                <div id="again_court_div" class="hidden" style="display:inline;">
+                    <input type="text" id="again_court_name" class="court-input" placeholder="地名"> <span>地方法院</span>
+                </div>
+                <input type="text" id="again_year" class="num-short" placeholder="110"> <span>年度</span>
+                <input type="text" id="again_case_title" placeholder="交簡字" style="width: 80px;">
+                <span>第</span>
+                <input type="text" id="again_case_no" placeholder="123" style="width: 50px;">
+                <span>號</span>
+            </div>
+            <label style="margin-top:5px;">前案刑期：</label>
+            <input type="text" id="again_m_num" class="num-short"> <span>月</span>
+        </div>
+
+        <div id="input_leifan" class="extra-input hidden">
+            <label>前案法院案號：</label>
+            <div class="case-input-group">
+                <select id="lei_court_sel" onchange="toggleCourtInput('lei')" style="width: 80px;">
+                    <option value="本院">本院</option>
+                    <option value="臺灣">臺灣</option>
+                </select>
+                <div id="lei_court_div" class="hidden" style="display:inline;">
+                    <input type="text" id="lei_court_name" class="court-input" placeholder="地名"> <span>地方法院</span>
+                </div>
+                <input type="text" id="lei_year" class="num-short" placeholder="108"> <span>年度</span>
+                <input type="text" id="lei_case_title" placeholder="花原交簡字" style="width: 100px;">
+                <span>第</span>
+                <input type="text" id="lei_case_no" placeholder="353" style="width: 50px;">
+                <span>號</span>
+            </div>
+            <label style="margin-top:5px;">前案刑期：</label>
+            <input type="text" id="lei_m_num" class="num-short"> <span>月</span>
+            <label style="margin-top:5px;">執行完畢日期：</label>
+            <span>民國</span> <input type="text" id="lei_y" class="num-short"> <span>年</span>
+            <input type="text" id="lei_m" class="num-short"> <span>月</span>
+            <input type="text" id="lei_d" class="num-short"> <span>日</span>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <input type="text" id="alcohol" placeholder="濃度(如: 0.55)">
+            <input type="text" id="months" placeholder="本案刑期(月)">
+        </div>
+
+        <label style="margin-top:10px;">量刑細節選填</label>
+        <select id="accident_type">
+            <option value="且本案幸未肇事致生實害">幸未肇事致生實害</option>
+            <option value="且本案雖有肇事，但幸未造成其他人員傷亡結果">雖有肇事，但幸未傷亡</option>
+        </select>
+        <select id="test_type" style="margin-top:5px;">
+            <option value="吐氣">吐氣</option>
+            <option value="血液中">血液中</option>
+        </select>
+
+        <div class="section-title">6. 結尾資訊填寫</div>
+        <label>聲請檢察官姓名</label>
+        <input type="text" id="pros_name" placeholder="請輸入檢察官姓名">
+        <label style="margin-top:8px;">裁判法院/庭別</label>
+        <select id="court_type">
+            <option value="花蓮簡易庭">花蓮簡易庭</option>
+            <option value="玉里簡易庭">玉里簡易庭</option>
+        </select>
+        <label style="margin-top:8px;">裁判日期</label>
+        <div class="time-group">
+            <input type="text" id="jy" placeholder="114"><span>年</span>
+            <input type="text" id="jm" placeholder=""><span>月</span>
+            <input type="text" id="jd" placeholder=""><span>日</span>
+        </div>
+
+        <button type="button" onclick="generate()">生成判決書全文</button>
+    </div>
+
+    <div class="output-area">
+        <button class="copy-btn" onclick="copyText()">複製全文</button>
+        <div id="judgement_text">請填寫左側參數，然後點擊按鈕生成內容。</div>
+    </div>
+</div>
+
+<script>
+function toggleRecInputs() {
+    const val = document.getElementById('rec_type').value;
+    document.getElementById('input_again').classList.add('hidden');
+    document.getElementById('input_leifan').classList.add('hidden');
+    if (val === '再犯') document.getElementById('input_again').classList.remove('hidden');
+    if (val === '累犯') document.getElementById('input_leifan').classList.remove('hidden');
+}
+
+function toggleCourtInput(prefix) {
+    const sel = document.getElementById(prefix + '_court_sel').value;
+    const div = document.getElementById(prefix + '_court_div');
+    if (sel === '臺灣') div.classList.remove('hidden');
+    else div.classList.add('hidden');
+}
+
+function toChineseUpper(n) {
+    const dict = { '1': '壹', '2': '貳', '3': '參', '4': '肆', '5': '伍', '6': '陸', '7': '柒', '8': '捌', '9': '玖', '10': '拾' };
+    return dict[n.toString()] || n;
+}
+
+function generate() {
+    try {
+        const fill = "_________"; 
+
+        const name = document.getElementById('name').value || fill;
+        const lawyerName = document.getElementById('lawyer').value;
+        const caseYear = document.getElementById('case_year').value || fill;
+        const caseNum = document.getElementById('case_num').value || fill;
+        const pYear = document.getElementById('pros_year').value || fill;
+        const pType = document.getElementById('pros_type').value;
+        const pNum = document.getElementById('pros_num').value || fill;
+        
+        const dept = document.getElementById('dept_name').value ? document.getElementById('dept_name').value + "分局" : fill + "分局";
+        const rName = document.getElementById('record_name').value || fill;
+        const cert = document.getElementById('cert_unit').value;
+        const vehicle = document.getElementById('vehicle_type').value;
+        const plate = document.getElementById('plate_id').value || fill;
+        const loc = document.getElementById('location').value || fill;
+        const reason = document.getElementById('reason').value || "不勝酒力自摔";
+        const alcohol = document.getElementById('alcohol').value || "0.00";
+        const months = document.getElementById('months').value || fill;
+        const accident = document.getElementById('accident_type').value;
+        const testType = document.getElementById('test_type').value; 
+        const d_loc = document.getElementById('drink_loc').value || fill;
+        const license = document.getElementById('license_status').value;
+        const recType = document.getElementById('rec_type').value;
+
+        const prosName = document.getElementById('pros_name').value || fill;
+        const courtType = document.getElementById('court_type').value;
+        const jy = document.getElementById('jy').value || fill;
+        const jm = document.getElementById('jm').value || fill;
+        const jd = document.getElementById('jd').value || fill;
+
+        const ay1 = document.getElementById('ay1').value || fill;
+        const am1 = document.getElementById('am1').value || fill;
+        const ad1 = document.getElementById('ad1').value || fill;
+        const ah1 = document.getElementById('ah1').value || fill;
+        const ami1 = document.getElementById('ami1').value || " ";
+        const d_end = document.getElementById('day_end').value;
+        const ah2 = document.getElementById('ah2').value || fill;
+        const ami2 = document.getElementById('ami2').value || fill;
+        const d_pass = document.getElementById('day_pass').value;
+        const h_pass = document.getElementById('h_pass').value || fill;
+        const m_pass = document.getElementById('m_pass').value || fill;
+        const d_test = document.getElementById('day_test').value;
+        const h_test = document.getElementById('h_test').value || fill;
+        const m_test = document.getElementById('m_test').value || fill;
+
+        let action = (vehicle === "普通重型機車" || vehicle === "電動輔助自行車") ? "騎乘" : "駕駛";
+
+        let zh_threshold = (testType === "血液中") ? "血液中酒精濃度達百分之零點零五以上" : "吐氣所含酒精濃度達每公升零點二五毫克以上";
+        let fact_detect = (testType === "血液中") ? `施以血液酒精濃度測試，測得其血液中酒精濃度達${alcohol}毫克` : `施以吐氣酒精濃度測試，測得其吐氣所含酒精濃度為每公升${alcohol}毫克`;
+        let law_article = (testType === "血液中") ? "第1項第1款後段" : "第1項第1款前段";
+        let rec_threshold = (testType === "血液中") ? `已達血液中酒精濃度達${alcohol}毫克之狀態` : `已達吐氣酒精濃度每公升${alcohol}毫克之狀態`;
+        let footer_law = (testType === "血液中") ? "中華民國刑法第185條之3第1項第1款後段" : "中華民國刑法第185條之3第1項第1款";
+        
+        // 針對血液中的量刑說明修正
+        let sentence_alc_text = (testType === "血液中") ? "驗得之血液中酒精濃度值" : "測得之酒精濃度值";
+
+        const factText = `${name}於民國${ay1}年${am1}月${ad1}日${ah1}時${ami1}分許至${d_end}${ah2}時${ami2}分許止，在其位於${d_loc}飲用酒類及食用含有酒精成分之食物後，已達不能安全駕駛動力交通工具之程度，竟仍基於酒後不能安全駕駛動力交通工具之犯意，${action}車牌號碼${plate}號${vehicle}上路，嗣於${d_pass}${h_pass}時${m_pass}分許，行經${loc}前時，因${reason}。經員警上前盤查發現${name}身有酒氣，遂於${d_test}${h_test}時${m_test}分許，對${name}${fact_detect}，而悉上情。`;
+
+        let part2 = "";
+        let part3 = "";
+        let sectionTitle = "三、論罪、刑之酌科："; 
+
+        if (recType === "初犯") {
+            const licenseExtra = (license === "no") ? `；且其無駕駛執照猶為本案犯行，有前引駕籍查詢結果可佐，主觀惡性非低` : "";
+            part2 = `(二)爰以行為人之責任為基礎，審酌酒後不開車之觀念及酒後駕車之危害，已透過政令宣導及媒體廣為宣傳多年而眾所周知，被告應對於酒後駕車對全體道路用路人之交通安全產生高度危險性有所認識，${rec_threshold}，仍執意${action}${vehicle}上路，顯見被告罔顧其他交通參與者之生命、身體安全，犯行應值非難${licenseExtra}；惟慮及被告犯後坦承犯行，態度尚可，且被告本案之前並無酒駕相關之科刑紀錄，有法院前案紀錄表附卷可參，為酒駕初犯，${accident}，應得資為量刑上之有利參考；兼衡酌被告${action}之車輛種類、行駛之道路種類、${sentence_alc_text}及被告於警詢中自述之教育程度、工作、家庭經濟狀況，暨戶役政資訊網站查詢-個人戶籍資料所示婚姻狀況等一切情狀，量處如主文所示之刑，並依刑法第41條第1項前段規定，諭知如易科罰金之折算標準。`;
+        } 
+        else if (recType === "再犯") {
+            const cSel = document.getElementById('again_court_sel').value;
+            const cName = document.getElementById('again_court_name').value || fill;
+            const cYear = document.getElementById('again_year').value || fill;
+            const cTitle = document.getElementById('again_case_title').value || fill;
+            const cNo = document.getElementById('again_case_no').value || fill;
+            const courtFull = (cSel === '本院') ? '本院' : `臺灣${cName}地方法院`;
+            const againCase = `${courtFull}${cYear}年度${cTitle}第${cNo}號`;
+            
+            const amVal = document.getElementById('again_m_num').value;
+            const againM = amVal ? amVal + "月" : fill;
+            const licenseExtra = (license === "no") ? "，且其駕照前已因酒駕逕註，亦有前引駕籍查詢結果可佐" : "";
+            
+            part2 = `(二)爰以行為人之責任為基礎，審酌酒後不開車之觀念及酒後駕車之危害，已透過政令宣導及媒體廣為宣傳多年而眾所周知，被告應對於酒後駕車對全體道路用路人之交通安全產生高度危險性有所認識，${rec_threshold}，仍執意${action}${vehicle}上路，顯見被告罔顧其他交通參與者之生命、身體安全，犯行應值非難；且被告前因酒後駕車之公共危險行為，經${againCase}判決判處有期徒刑${againM}確定，有法院前案紀錄表在卷可參，竟仍不知戒慎，率爾再為本次犯行${licenseExtra}，益徵被告主觀惡性非低。惟慮及被告犯後坦承犯行，態度尚可，且本案幸未肇事致生實害，應得資為量刑上之有利參考；兼衡酌被告${action}之車輛種類、行駛之道路種類、${sentence_alc_text}及被告於警詢中自述之教育程度、工作、家庭經濟狀況，暨戶役政資訊網站查詢-個人戶籍資料所示婚姻狀況等一切情狀，量處如主文所示之刑，並依刑法第41條第1項前段規定，諭知如易科罰金之折算標準。`;
+        }
+        else if (recType === "累犯") {
+            sectionTitle = "三、論罪、刑之加重及酌科："; 
+            const cSel = document.getElementById('lei_court_sel').value;
+            const cName = document.getElementById('lei_court_name').value || fill;
+            const cYear = document.getElementById('lei_year').value || fill;
+            const cTitle = document.getElementById('lei_case_title').value || fill;
+            const cNo = document.getElementById('lei_case_no').value || fill;
+            const courtFull = (cSel === '本院') ? '本院' : `臺灣${cName}地方法院`;
+            const leiCase = `${courtFull}${cYear}年度${cTitle}第${cNo}號`;
+
+            const lmVal = document.getElementById('lei_m_num').value;
+            const leiM = lmVal ? lmVal + "月" : fill;
+            
+            const ly = document.getElementById('lei_y').value;
+            const lm = document.getElementById('lei_m').value;
+            const ld = document.getElementById('lei_d').value;
+            const leiD = (ly && lm && ld) ? `民國${ly}年${lm}月${ld}日` : fill;
+
+            const licenseExtra = (license === "no") ? "；且其駕照前已因酒駕逕註，亦有前引駕籍查詢結果可佐" : "";
+
+            part2 = `(二)累犯之說明：
+聲請簡易判決處刑意旨就被告前因公共危險案件，經${leiCase}判決判處有期徒刑${leiM}確定，並於${leiD}執行完畢之「累犯事實」有所主張，並提出刑案資料查註紀錄表為證，經核與法院前案紀錄表相符，足認檢察官已就被告構成累犯之事實為實質舉證（最高法院111年度台上字第3143號判決意旨參照），是被告前經有期徒刑執行完畢後，5年以內故意再犯本案，應依刑法第47條第1項規定論以累犯。又聲請簡易判決處刑意旨並以被告構成累犯事實之前案與本案皆為公共危險案件，罪質相同學情為說明，亦認檢察官就被告何以因累犯事實而應加重其刑已為實質舉證及具體說明（最高法院110年度台上字第5660號判決意旨參照）。本院審酌被告前開構成累犯之前案犯罪事實與本案之犯罪事實所該當之罪名相同，兩者間具有明顯關聯，且被告經刑事執行後仍再犯同一罪名，顯見被告對於酒後駕駛之危害性未有深刻體認，已徵被告主觀惡性非低、刑罰反應力未足，且如加重其法定最低度刑，尚不至於使「行為人所受之刑罰」超過「其所應負擔罪責」，爰依司法院釋字第775號解釋意旨及刑法第47條第1項，加重其刑。\n\n`;
+            
+            part3 = `(三)爰以行為人之責任為基礎，審酌酒後不開車之觀念及酒後駕車之危害，已透過政令宣導及媒體廣為宣傳多年而眾所周知，被告應對於酒後駕車對全體道路用路人之交通安全產生高度危險性有所認識，${rec_threshold}，仍執意${action}${vehicle}上路，顯見被告罔顧其他交通參與者之生命、身體安全，犯行應值非難；且被告除構成累犯前科外（已作為累犯基礎事實之前案，於此即不重複評價），尚有多次不能安全駕駛之前科，有前引之被告前案紀錄表在卷可參 ，竟仍不知戒慎，率爾再為本次犯行${licenseExtra}，益徵被告主觀惡性非低、刑罰反應力未足一情。惟慮及被告犯後坦承犯行，態度尚可，且本案幸未肇事致生實害，應得資為量刑上之有利參考；兼衡酌被告${action}之車輛種類、行駛之道路種類、${sentence_alc_text}及被告於警詢中自述之教育程度、工作、家庭經濟狀況，暨戶役政資訊網站查詢-個人戶籍資料所示婚姻狀況等一切情狀，量處如主文所示之刑，並依刑法第41條第1項前段規定，諭知如易科罰金之折算標準。`;
+        }
+
+        const template = `臺灣花蓮地方法院刑事簡易判決
+${caseYear}年度原交易字第${caseNum}號
+聲  請  人  臺灣花蓮地方檢察署檢察官
+被      告  ${name}
+${lawyerName ? '選任辯護人  ' + lawyerName + '律師\n' : ''}
+上列被告因公共危險案件，經檢察官聲請以簡易判決處刑（${pYear}年度${pType}第${pNum}號），本院判決如下：
+
+    主  文
+${name}${zh_threshold}，處有期徒刑${toChineseUpper(months)}月，如易科罰金，以新臺幣一仟元折算一日。
+
+    犯罪事實及理由
+一、犯罪事實：
+    ${factText}
+
+二、上開犯罪事實，有下列證據可資證明：
+（一）被告${name}於警詢、偵查中之自白。
+（二）花蓮縣警察局${dept}${rName}酒精測定紀錄表。
+（三）${cert}呼氣酒精測試器檢定合格證書。
+（四）勘察採證同意書。
+（五）花蓮縣警察局舉發違反道路交通管理事件通知單影本。
+（六）公路監理電子閘門系統查詢結果。
+（七）花蓮縣警察局${dept}實施酒測民眾權益告知表。
+
+${sectionTitle}
+(一)核被告所為，係犯刑法第185條之3${law_article}之${zh_threshold}罪。
+${part2}${part3}
+
+四、依刑事訴訟法第449條第1項前段、第3項，第454條第1項，刑法施行法第1條之1第1項，逕以簡易判決處刑如主文。
+
+五、如不服本判決，應於判決送達後20日內，向本院提出上訴狀（應附繕本），上訴於本院第二審合議庭。
+本案經檢察官${prosName}聲請以簡易判決處刑。
+
+中　　華　　民　　國　　${jy}　年　　${jm}　月　　${jd}　日
+                ${courtType}  法　官　
+
+附錄本案論罪科刑法條：
+${footer_law}`;
+
+        document.getElementById('judgement_text').innerText = template;
+    } catch (e) {
+        alert("執行出錯：" + e.message);
+    }
+}
+
+function copyText() {
+    const text = document.getElementById('judgement_text').innerText;
+    if (text.includes("請填寫左側")) return;
+    navigator.clipboard.writeText(text).then(() => alert('全文內容已複製！'));
+}
+</script>
+
+</body>
+</html>
